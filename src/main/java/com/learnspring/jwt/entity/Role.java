@@ -1,7 +1,6 @@
 package com.learnspring.jwt.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -13,6 +12,8 @@ import lombok.*;
 @ToString
 public class Role {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
 }
