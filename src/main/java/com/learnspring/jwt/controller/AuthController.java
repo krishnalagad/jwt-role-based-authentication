@@ -2,6 +2,8 @@ package com.learnspring.jwt.controller;
 
 import com.learnspring.jwt.dto.JwtAuthResponse;
 import com.learnspring.jwt.dto.LoginDto;
+import com.learnspring.jwt.dto.RegisterUserResponse;
+import com.learnspring.jwt.entity.User;
 import com.learnspring.jwt.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,5 +29,18 @@ public class AuthController {
         authResponse.setAccessToken(token);
 
         return ResponseEntity.status(HttpStatus.OK).body(authResponse);
+    }
+
+    @PostMapping("/register-user")
+    public ResponseEntity<RegisterUserResponse> register(@RequestBody User user) {
+
+        User savedUser = this.authService.register(user);
+
+        String roleName = savedUser.getRoles().iterator().next().getName();
+
+        RegisterUserResponse response = new RegisterUserResponse(savedUser.getId(), savedUser.getName(), savedUser.getUsername(),
+                savedUser.getEmail(), savedUser.getProfile(), roleName);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 }
