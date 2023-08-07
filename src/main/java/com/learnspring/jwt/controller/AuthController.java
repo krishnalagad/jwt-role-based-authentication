@@ -7,16 +7,23 @@ import com.learnspring.jwt.dto.JwtAuthResponse;
 import com.learnspring.jwt.dto.LoginDto;
 import com.learnspring.jwt.dto.RegisterUserResponse;
 import com.learnspring.jwt.entity.User;
+import com.learnspring.jwt.repository.UserRepository;
 import com.learnspring.jwt.service.AuthService;
 import com.learnspring.jwt.service.ImageService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -32,6 +39,9 @@ public class AuthController {
     private String path;
     @Autowired
     private ObjectMapper mapper;
+
+    @Autowired
+    private UserRepository userRepository;
 
     private Logger logger = LoggerFactory.getLogger(AuthController.class);
 
@@ -61,7 +71,7 @@ public class AuthController {
 
     @PostMapping("/register-user/image")
     public ResponseEntity<RegisterUserResponse> registerWithImage(@RequestParam("file") MultipartFile file,
-                                                                  @RequestParam("userData") String userData) {
+                                                                  @RequestParam("userData") String userData) throws IOException {
         User user = null;
 
         // convert String data into JSON object.
@@ -74,8 +84,31 @@ public class AuthController {
         }
 
         this.logger.info("User JSON: {}", user);
-        
 
-        return null;
+        // assign role to new user and save it to database.
+        User saveUser = this.authService.register(user);
+
+        String fileName = this.imageService.uploadImage(this.path, file, saveUser.getId());
+        saveUser.setProfile(fileName);
+
+        User updateUser = this.userRepository.save(saveUser);
+        String roleName = updateUser.getRoles().iterator().next().getName();
+
+        RegisterUserResponse registerUserResponse = new RegisterUserResponse(updateUser.getId(), updateUser.getName()
+                , updateUser.getUsername(), updateUser.getEmail(), updateUser.getProfile(), roleName);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(registerUserResponse);
+    }
+
+    // API to serve/retrieve file
+    @GetMapping(value = "/user/image/{imageName}", produces = MediaType.IMAGE_JPEG_VALUE)
+    public void getImage(@PathVariable("imageName") String imageaName, HttpServletResponse response)
+            throws IOException {
+
+        InputStream resource = this.imageService.getResource(path, imageaName);
+
+        response.setContentType(MediaType.IMAGE_JPEG_VALUE);
+        StreamUtils.copy(resource, response.getOutputStream());
+
     }
 }
