@@ -1,5 +1,6 @@
 package com.learnspring.jwt.config;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,12 +25,19 @@ public class SpringSecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        //noinspection removal
         http.csrf(csrf -> csrf.disable())
                 .cors(cors -> cors.disable())
                 .authorizeHttpRequests((authorize) -> {
                     authorize.requestMatchers("/api/auth/**").permitAll();
                     authorize.anyRequest().authenticated();
-                });
+                })
+                .exceptionHandling().authenticationEntryPoint(
+                        (request, response, authException) -> response.sendError(
+                                HttpServletResponse.SC_UNAUTHORIZED,
+                                authException.getMessage()
+                        )
+                );
         return http.build();
     }
 
