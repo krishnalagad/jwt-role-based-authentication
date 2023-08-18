@@ -20,21 +20,26 @@ export class LoginComponent implements OnInit {
 
   login() {
     // console.log(this.model);
+
     let data = {
       username: this.model.username,
       password: this.model.password,
     };
     this._http
       .post('http://localhost:8080/api/auth/', data)
-      .subscribe((response) => {
-        if (response) {
+      .subscribe((response: any) => {
+        if (response && response.accessToken) {
           console.log(response);
+          this.sessionId = response.accessToken;
+          sessionStorage.setItem('token', this.sessionId);
+
+          this._router.navigate(['']);
         } else {
           console.log('Failed');
         }
       });
 
-    // let url = 'http://localhost:8080/api/auth/';
+    // let url = '/api/';
     // this._http
     //   .post<any>(url, {
     //     username: this.model.username,
@@ -43,9 +48,7 @@ export class LoginComponent implements OnInit {
     //   .subscribe((res) => {
     //     if (res) {
     //       console.log(res);
-
     //       // this.sessionId = res.sessionId;
-
     //       // sessionStorage.setItem('token', this.sessionId);
     //       // this._router.navigate(['/home']);
     //     } else {
