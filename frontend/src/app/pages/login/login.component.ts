@@ -13,6 +13,7 @@ export class LoginComponent implements OnInit {
     password: '',
   };
   sessionId: any = {};
+  flag: boolean = false;
 
   constructor(private _router: Router, private _http: HttpClient) {}
 
@@ -33,7 +34,8 @@ export class LoginComponent implements OnInit {
           this.sessionId = response.accessToken;
           sessionStorage.setItem('token', this.sessionId);
 
-          this._router.navigate(['']);
+          // this._router.navigate(['']);
+          this.flag = true;
         } else {
           console.log('Failed');
         }

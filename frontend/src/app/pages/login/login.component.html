@@ -1,4 +1,4 @@
-<form name="form" (ngSubmit)="login()" #f="ngForm">
+<form name="form" (ngSubmit)="login()" #f="ngForm" *ngIf="!flag">
   <div>
     <label for="username">Username</label>
     <input
@@ -23,3 +23,5 @@
   </div>
   <div><button type="submit">Login</button></div>
 </form>
+
+<h1 *ngIf="flag">Login Succcess</h1>
